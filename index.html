@@ -806,7 +806,12 @@
             const data = await response.json();
 
             if (data.success && data.reportes) {
-                todosLosReportes = data.reportes;
+                // Normalizar todas las fechas: quitar parte de hora si viene como ISO
+                todosLosReportes = data.reportes.map(r => ({
+                    ...r,
+                    fecha: r.fecha ? r.fecha.split('T')[0] : r.fecha,
+                    fecha_firma: r.fecha_firma ? r.fecha_firma.split('T')[0] : r.fecha_firma
+                }));
                 reportesFiltrados = [...todosLosReportes];
                 actualizarDashboard();
                 document.getElementById('lastUpdate').textContent =
@@ -854,7 +859,11 @@
         if (!fecha) {
             reportesFiltradosTabla = reportesFiltrados;
         } else {
-            reportesFiltradosTabla = reportesFiltrados.filter(r => r.fecha === fecha);
+            // Comparar solo la parte de fecha (por si algún registro tiene hora)
+            reportesFiltradosTabla = reportesFiltrados.filter(r => {
+                const fechaReporte = r.fecha ? r.fecha.split('T')[0] : '';
+                return fechaReporte === fecha;
+            });
         }
         renderTabla(reportesFiltradosTabla);
     }
@@ -969,7 +978,13 @@
                     y: {
                         beginAtZero: true,
                         grid: { color: '#F0F0F0' },
-                        ticks: { font: { family: 'Barlow', size: 12 }, color: '#999' }
+                        ticks: {
+                            font: { family: 'Barlow', size: 12 },
+                            color: '#999',
+                            precision: 0,
+                            stepSize: 1,
+                            callback: (val) => Number.isInteger(val) ? val : null
+                        }
                     },
                     x: {
                         grid: { display: false },
@@ -1088,7 +1103,7 @@
                 <tbody>
                     ${ultimos10.map(r => `
                         <tr>
-                            <td><strong>${r.fecha}</strong></td>
+                            <td><strong>${r.fecha ? r.fecha.split("T")[0] : "—"}</strong></td>
                             <td style="color:#888">${r.hora_generacion || r.hora || '—'}</td>
                             <td>${r.bodega}</td>
                             <td>${r.encargado || '—'}</td>
