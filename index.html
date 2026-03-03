@@ -3,1324 +3,1101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BigTicket — Dashboard de Escaneos</title>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <title>BigTicket - Dashboard de Reportes</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        :root {
-            --orange: #FF6600;
-            --orange-dark: #CC4F00;
-            --orange-light: #FF8533;
-            --orange-pale: #FFF0E6;
-            --black: #1A1A1A;
-            --gray-dark: #2D2D2D;
-            --gray-mid: #666;
-            --gray-light: #E8E8E8;
-            --white: #FFFFFF;
-            --green: #2ECC71;
-            --yellow: #F39C12;
-            --red: #E74C3C;
-            --blue: #3498DB;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-
-        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            font-family: 'Barlow', sans-serif;
-            background: #F4F4F4;
-            color: var(--black);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #FF6600 0%, #cc5200 100%);
             min-height: 100vh;
+            padding: 20px;
         }
 
-        /* ── HEADER ── */
         .header {
-            background: var(--black);
-            padding: 0 32px;
-            height: 64px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-bottom: 3px solid var(--orange);
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            text-align: center;
         }
 
-        .header-logo {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-        }
-
-        .logo-icon {
-            width: 38px;
-            height: 38px;
-            background: var(--orange);
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 20px;
-        }
-
-        .logo-text {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-weight: 800;
-            font-size: 22px;
-            color: var(--white);
-            letter-spacing: 0.5px;
-        }
-
-        .logo-text span { color: var(--orange); }
-
-        .header-subtitle {
-            font-size: 12px;
-            color: #888;
-            font-weight: 400;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
-
-        .header-right {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .btn-refresh {
-            background: transparent;
-            border: 1px solid #444;
-            color: #CCC;
-            padding: 7px 14px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 13px;
-            font-family: 'Barlow', sans-serif;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-refresh:hover { border-color: var(--orange); color: var(--orange); }
-
-        .last-update {
-            font-size: 12px;
-            color: #666;
-        }
-
-        /* ── MAIN LAYOUT ── */
-        .main {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 28px 24px;
-        }
-
-        /* ── FILTERS BAR ── */
-        .filters-bar {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 18px 24px;
-            display: flex;
-            align-items: flex-end;
-            gap: 16px;
-            flex-wrap: wrap;
-            margin-bottom: 24px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-            border: 1px solid var(--gray-light);
-        }
-
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .filter-group label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--gray-mid);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .filter-group input,
-        .filter-group select {
-            border: 1.5px solid var(--gray-light);
-            border-radius: 7px;
-            padding: 8px 12px;
-            font-size: 14px;
-            font-family: 'Barlow', sans-serif;
-            color: var(--black);
-            background: var(--white);
-            min-width: 150px;
-            transition: border-color 0.2s;
-        }
-
-        .filter-group input:focus,
-        .filter-group select:focus {
-            outline: none;
-            border-color: var(--orange);
-        }
-
-        .filter-actions {
-            display: flex;
-            gap: 8px;
-            margin-left: auto;
-        }
-
-        .btn {
-            padding: 9px 18px;
-            border-radius: 7px;
-            border: none;
-            cursor: pointer;
-            font-family: 'Barlow', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        .btn-primary { background: var(--orange); color: white; }
-        .btn-primary:hover { background: var(--orange-dark); }
-        .btn-outline { background: transparent; border: 1.5px solid var(--gray-light); color: var(--gray-mid); }
-        .btn-outline:hover { border-color: var(--orange); color: var(--orange); }
-        .btn-export { background: var(--black); color: white; }
-        .btn-export:hover { background: var(--gray-dark); }
-
-        /* ── KPI CARDS ── */
-        .kpi-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 16px;
-            margin-bottom: 24px;
-        }
-
-        .kpi-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 22px 24px;
-            border: 1px solid var(--gray-light);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s, box-shadow 0.2s;
-        }
-
-        .kpi-card:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
-
-        .kpi-card::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; right: 0;
-            height: 3px;
-        }
-
-        .kpi-card.orange::before { background: var(--orange); }
-        .kpi-card.green::before { background: var(--green); }
-        .kpi-card.yellow::before { background: var(--yellow); }
-        .kpi-card.blue::before { background: var(--blue); }
-
-        .kpi-icon {
-            font-size: 28px;
+        .logo {
+            max-width: 200px;
             margin-bottom: 10px;
         }
 
-        .kpi-value {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 42px;
-            font-weight: 800;
-            line-height: 1;
-            margin-bottom: 4px;
-            color: var(--black);
+        h1 {
+            color: #FF6600;
+            font-size: 28px;
+            margin-bottom: 5px;
         }
 
-        .kpi-card.orange .kpi-value { color: var(--orange); }
-        .kpi-card.green .kpi-value { color: var(--green); }
-        .kpi-card.yellow .kpi-value { color: var(--yellow); }
-        .kpi-card.blue .kpi-value { color: var(--blue); }
-
-        .kpi-label {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--gray-mid);
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
+        .subtitle {
+            color: #666;
+            font-size: 14px;
         }
 
-        /* ── CHARTS ROW ── */
-        .charts-row {
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .stats-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
             gap: 20px;
-            margin-bottom: 24px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-icon {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .stat-value {
+            font-size: 36px;
+            font-weight: bold;
+            color: #FF6600;
+            margin: 10px 0;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
         }
 
         .chart-card {
-            background: var(--white);
-            border-radius: 12px;
-            padding: 24px;
-            border: 1px solid var(--gray-light);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
-
-        .chart-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
         }
 
         .chart-title {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 16px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--black);
+            font-size: 18px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #FF6600;
         }
 
-        .chart-badge {
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--orange);
-            background: var(--orange-pale);
-            padding: 3px 10px;
-            border-radius: 20px;
+        .table-card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            overflow-x: auto;
         }
-
-        .chart-container {
-            height: 240px;
-            position: relative;
-        }
-
-        /* ── TABLE SECTION ── */
-        .table-section {
-            background: var(--white);
-            border-radius: 12px;
-            border: 1px solid var(--gray-light);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-            overflow: hidden;
-        }
-
-        .table-header {
-            padding: 20px 24px;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            border-bottom: 1px solid var(--gray-light);
-            flex-wrap: wrap;
-            gap: 12px;
-        }
-
-        .table-title {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 17px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .table-search {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-input {
-            border: 1.5px solid var(--gray-light);
-            border-radius: 7px;
-            padding: 7px 12px;
-            font-size: 13px;
-            font-family: 'Barlow', sans-serif;
-            min-width: 200px;
-            transition: border-color 0.2s;
-        }
-
-        .search-input:focus { outline: none; border-color: var(--orange); }
 
         table {
             width: 100%;
             border-collapse: collapse;
         }
 
-        thead tr {
-            background: #F9F9F9;
-        }
-
         th {
-            padding: 12px 20px;
+            background: #FF6600;
+            color: white;
+            padding: 12px;
             text-align: left;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--gray-mid);
-            border-bottom: 1px solid var(--gray-light);
+            font-weight: bold;
         }
 
         td {
-            padding: 13px 20px;
-            font-size: 14px;
-            border-bottom: 1px solid #F2F2F2;
-            vertical-align: middle;
+            padding: 12px;
+            border-bottom: 1px solid #eee;
         }
 
-        tbody tr:hover { background: var(--orange-pale); transition: background 0.15s; }
-        tbody tr:last-child td { border-bottom: none; }
+        tr:hover {
+            background: #fff3e0;
+        }
 
         .badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 4px;
-            padding: 4px 10px;
+            display: inline-block;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 12px;
+            font-weight: bold;
         }
 
-        .badge-success { background: #E8F8EF; color: #1B8C4A; }
-        .badge-warning { background: #FFF3CD; color: #856404; }
+        .badge-success {
+            background: #4caf50;
+            color: white;
+        }
 
-        .btn-detalle {
-            background: var(--black);
+        .badge-warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        .filters {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .filter-item {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .filter-item label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+            font-size: 14px;
+        }
+
+        .filter-item input,
+        .filter-item select {
+            width: 100%;
+            padding: 10px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 14px;
+        }
+
+        .btn {
+            padding: 10px 25px;
+            background: #FF6600;
             color: white;
             border: none;
-            border-radius: 6px;
-            padding: 6px 12px;
-            font-size: 12px;
-            font-family: 'Barlow', sans-serif;
-            font-weight: 600;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
         }
 
-        .btn-detalle:hover { background: var(--orange); }
+        .btn:hover {
+            background: #cc5200;
+        }
 
-        /* ── LOADING / EMPTY / ERROR ── */
-        .state-container {
-            padding: 60px 20px;
+        .btn-secondary {
+            background: #666;
+        }
+
+        .btn-secondary:hover {
+            background: #444;
+        }
+
+        .loading {
             text-align: center;
-            color: var(--gray-mid);
+            padding: 40px;
+            color: white;
+            font-size: 18px;
         }
 
-        .state-icon { font-size: 48px; margin-bottom: 16px; }
-        .state-title { font-family: 'Barlow Condensed', sans-serif; font-size: 22px; font-weight: 700; margin-bottom: 8px; }
-        .state-desc { font-size: 14px; color: #999; }
-
-        .spinner {
-            width: 40px;
-            height: 40px;
-            border: 3px solid var(--gray-light);
-            border-top-color: var(--orange);
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 16px;
+        .error {
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .empty-state {
+            text-align: center;
+            padding: 60px;
+            color: #999;
+        }
 
-        /* ── MODAL ── */
-        .modal-overlay {
+        .empty-state-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        /* MODAL PARA VER DETALLE DE REPORTE */
+        .modal {
             display: none;
             position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.6);
             z-index: 1000;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(3px);
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            overflow-y: auto;
         }
 
-        .modal-overlay.show { display: flex; }
-
-        .modal {
-            background: var(--white);
-            border-radius: 16px;
-            width: 100%;
-            max-width: 760px;
-            max-height: 88vh;
-            overflow: hidden;
+        .modal.show {
             display: flex;
-            flex-direction: column;
-            box-shadow: 0 24px 80px rgba(0,0,0,0.3);
+            justify-content: center;
+            align-items: flex-start;
+            padding: 40px 20px;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 20px;
+            max-width: 900px;
+            width: 100%;
+            padding: 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+            animation: slideDown 0.3s ease;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .modal-header {
-            background: var(--black);
-            padding: 20px 28px;
             display: flex;
-            align-items: center;
             justify-content: space-between;
-            border-bottom: 3px solid var(--orange);
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #FF6600;
+        }
+
+        .modal-header-left {
+            display: flex;
+            gap: 10px;
+            align-items: center;
         }
 
         .modal-title {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 20px;
-            font-weight: 800;
-            color: var(--white);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 24px;
+            font-weight: bold;
+            color: #FF6600;
         }
 
-        .modal-actions {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .btn-modal-export {
-            background: var(--orange);
+        .btn-export-excel {
+            padding: 8px 16px;
+            background: #4caf50;
             color: white;
             border: none;
-            border-radius: 7px;
-            padding: 8px 16px;
-            font-family: 'Barlow', sans-serif;
-            font-weight: 600;
-            font-size: 13px;
+            border-radius: 8px;
             cursor: pointer;
-            transition: background 0.2s;
+            font-size: 14px;
+            font-weight: bold;
+            transition: background 0.3s;
             display: flex;
             align-items: center;
-            gap: 6px;
+            gap: 5px;
         }
 
-        .btn-modal-export:hover { background: var(--orange-dark); }
+        .btn-export-excel:hover {
+            background: #45a049;
+        }
 
-        .btn-close {
-            background: transparent;
-            border: 1px solid #444;
-            color: #CCC;
-            width: 34px;
-            height: 34px;
-            border-radius: 7px;
+        .modal-close {
+            background: #f44336;
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            font-size: 24px;
             cursor: pointer;
-            font-size: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
+            transition: transform 0.2s;
         }
 
-        .btn-close:hover { border-color: var(--orange); color: var(--orange); }
-
-        .modal-body {
-            overflow-y: auto;
-            padding: 28px;
-            flex: 1;
+        .modal-close:hover {
+            transform: rotate(90deg);
         }
 
         .detail-section {
-            margin-bottom: 24px;
+            background: #f5f5f5;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
         }
 
         .detail-section h3 {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 14px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--orange);
-            margin-bottom: 14px;
+            color: #FF6600;
+            margin-bottom: 15px;
+            font-size: 18px;
+            border-bottom: 2px solid #FF6600;
             padding-bottom: 8px;
-            border-bottom: 1px solid var(--gray-light);
         }
 
         .detail-grid {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
         }
 
         .detail-item {
-            background: #F9F9F9;
+            background: white;
+            padding: 12px;
             border-radius: 8px;
-            padding: 12px 16px;
+            border-left: 4px solid #FF6600;
         }
 
         .detail-label {
-            font-size: 11px;
-            font-weight: 600;
-            color: var(--gray-mid);
+            font-size: 12px;
+            color: #666;
             text-transform: uppercase;
-            letter-spacing: 0.6px;
-            margin-bottom: 4px;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
         }
 
         .detail-value {
-            font-size: 15px;
-            font-weight: 600;
-            color: var(--black);
-        }
-
-        .kpi-mini-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-
-        .kpi-mini {
-            background: var(--orange-pale);
-            border-radius: 8px;
-            padding: 14px;
-            text-align: center;
-            border: 1px solid rgba(255,102,0,0.2);
-        }
-
-        .kpi-mini-val {
-            font-family: 'Barlow Condensed', sans-serif;
-            font-size: 32px;
-            font-weight: 800;
-            color: var(--orange);
-        }
-
-        .kpi-mini-lbl {
-            font-size: 11px;
-            color: var(--gray-mid);
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
+            font-size: 16px;
+            font-weight: bold;
+            color: #333;
         }
 
         .codigos-table {
             width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
+            margin-top: 10px;
         }
 
         .codigos-table th {
-            background: #F2F2F2;
-            padding: 9px 14px;
-            font-size: 11px;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 0.6px;
-            color: var(--gray-mid);
-            border: none;
+            background: #FF6600;
+            color: white;
+            padding: 10px;
+            text-align: left;
         }
 
         .codigos-table td {
-            padding: 9px 14px;
-            border-bottom: 1px solid #F2F2F2;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
         }
 
-        .codigos-table tbody tr:last-child td { border-bottom: none; }
-
-        .sin-cargas-alert {
-            background: #FFF9E6;
-            border: 1.5px solid #F39C12;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
+        .codigos-table tr:hover {
+            background: #fff3e0;
         }
 
-        .sin-cargas-alert .alert-icon { font-size: 36px; margin-bottom: 10px; }
-        .sin-cargas-alert h3 { color: #856404; font-family: 'Barlow Condensed', sans-serif; font-size: 18px; font-weight: 700; }
-        .sin-cargas-alert p { color: #997404; font-size: 13px; margin-top: 8px; }
-
-        /* ── RESPONSIVE ── */
-        @media (max-width: 900px) {
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-            .charts-row { grid-template-columns: 1fr; }
-            .header-subtitle { display: none; }
+        .btn-ver-detalle {
+            padding: 6px 12px;
+            background: #2196f3;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: background 0.3s;
         }
 
-        @media (max-width: 600px) {
-            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
-            .filter-actions { margin-left: 0; width: 100%; }
-            .filters-bar { flex-direction: column; align-items: stretch; }
-            .filter-group input, .filter-group select { min-width: unset; width: 100%; }
+        .btn-ver-detalle:hover {
+            background: #1976d2;
+        }
+
+        @media (max-width: 768px) {
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .charts-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .filter-group {
+                flex-direction: column;
+            }
+            
+            .filter-item {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="container">
+        <!-- HEADER -->
+        <div class="header">
+            <h1>🚛 BIGTICKET LOGÍSTICA</h1>
+            <p class="subtitle">Dashboard de Reportes de Escaneo</p>
+        </div>
 
-<!-- HEADER -->
-<header class="header">
-    <div class="header-logo">
-        <div class="logo-icon">🚚</div>
-        <div>
-            <div class="logo-text"><span>big</span>ticket</div>
-            <div class="header-subtitle">Dashboard de Escaneos</div>
-        </div>
-    </div>
-    <div class="header-right">
-        <span class="last-update" id="lastUpdate">—</span>
-        <button class="btn-refresh" onclick="cargarDatos()">
-            🔄 Actualizar
-        </button>
-    </div>
-</header>
-
-<!-- MAIN -->
-<div class="main">
-
-    <!-- FILTERS -->
-    <div class="filters-bar">
-        <div class="filter-group">
-            <label>Fecha Desde</label>
-            <input type="date" id="fechaDesde">
-        </div>
-        <div class="filter-group">
-            <label>Fecha Hasta</label>
-            <input type="date" id="fechaHasta">
-        </div>
-        <div class="filter-group">
-            <label>Bodega</label>
-            <select id="filtroBodega">
-                <option value="">Todas las bodegas</option>
-            </select>
-        </div>
-        <div class="filter-actions">
-            <button class="btn btn-primary" onclick="aplicarFiltros()">🔍 Filtrar</button>
-            <button class="btn btn-outline" onclick="limpiarFiltros()">✕ Limpiar</button>
-            <button class="btn btn-export" onclick="exportarResumen()">⬇ Exportar</button>
-        </div>
-    </div>
-
-    <!-- KPIs -->
-    <div class="kpi-grid">
-        <div class="kpi-card orange">
-            <div class="kpi-icon">📋</div>
-            <div class="kpi-value" id="kpiReportes">—</div>
-            <div class="kpi-label">Total Reportes</div>
-        </div>
-        <div class="kpi-card green">
-            <div class="kpi-icon">📦</div>
-            <div class="kpi-value" id="kpiBultos">—</div>
-            <div class="kpi-label">Bultos Retirados</div>
-        </div>
-        <div class="kpi-card yellow">
-            <div class="kpi-icon">⚠️</div>
-            <div class="kpi-value" id="kpiSinCarga">—</div>
-            <div class="kpi-label">Días Sin Carga</div>
-        </div>
-        <div class="kpi-card blue">
-            <div class="kpi-icon">🔁</div>
-            <div class="kpi-value" id="kpiMultibultos">—</div>
-            <div class="kpi-label">Multibultos</div>
-        </div>
-    </div>
-
-    <!-- CHARTS -->
-    <div class="charts-row">
-        <div class="chart-card">
-            <div class="chart-header">
-                <div class="chart-title">Bultos por Día</div>
-                <span class="chart-badge" id="chartDiasBadge">Últimos 6 días</span>
-            </div>
-            <div class="chart-container">
-                <canvas id="chartDias"></canvas>
+        <!-- FILTROS -->
+        <div class="filters">
+            <div class="filter-group">
+                <div class="filter-item">
+                    <label>📅 Fecha Desde:</label>
+                    <input type="date" id="fechaDesde">
+                </div>
+                <div class="filter-item">
+                    <label>📅 Fecha Hasta:</label>
+                    <input type="date" id="fechaHasta">
+                </div>
+                <div class="filter-item">
+                    <label>🏢 Bodega:</label>
+                    <select id="filtroBodega">
+                        <option value="">Todas las bodegas</option>
+                    </select>
+                </div>
+                <div class="filter-item" style="display: flex; gap: 10px; align-items: flex-end;">
+                    <button class="btn" onclick="aplicarFiltros()">🔍 Filtrar</button>
+                    <button class="btn btn-secondary" onclick="limpiarFiltros()">🔄 Limpiar</button>
+                    <button class="btn btn-secondary" onclick="exportarExcel()">📥 Exportar</button>
+                </div>
             </div>
         </div>
-        <div class="chart-card">
-            <div class="chart-header">
-                <div class="chart-title">Distribución por Bodega</div>
-                <span class="chart-badge" id="chartBodegaBadge">—</span>
+
+        <!-- ESTADÍSTICAS -->
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card">
+                <div class="stat-icon">📦</div>
+                <div class="stat-value" id="totalReportes">0</div>
+                <div class="stat-label">Total Reportes</div>
             </div>
-            <div class="chart-container">
-                <canvas id="chartBodega"></canvas>
+            <div class="stat-card">
+                <div class="stat-icon">📊</div>
+                <div class="stat-value" id="totalBultos">0</div>
+                <div class="stat-label">Total Bultos</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">⚠️</div>
+                <div class="stat-value" id="sinCargas">0</div>
+                <div class="stat-label">Sin Cargas</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">👥</div>
+                <div class="stat-value" id="encargadosActivos">0</div>
+                <div class="stat-label">Encargados Activos</div>
+            </div>
+        </div>
+
+        <!-- GRÁFICOS -->
+        <div class="charts-grid">
+            <div class="chart-card" style="grid-column: 1 / 2;">
+                <h3 class="chart-title">📈 Códigos Escaneados por Día</h3>
+                <canvas id="chartCodigosPorDia"></canvas>
+            </div>
+            <div class="chart-card" style="grid-column: 2 / 3;">
+                <h3 class="chart-title">🏢 Códigos Escaneados por Bodega</h3>
+                <div id="totalBodegaDisplay" style="text-align: center; font-size: 14px; color: #666; margin-bottom: 10px;">
+                    <!-- Se muestra el total aquí -->
+                </div>
+                <canvas id="chartCodigosPorBodega"></canvas>
+            </div>
+        </div>
+
+        <!-- TABLA DE REPORTES -->
+        <div class="table-card">
+            <h3 class="chart-title">📋 Últimos Reportes</h3>
+            <div id="tableContainer">
+                <div class="loading">Cargando datos...</div>
             </div>
         </div>
     </div>
 
-    <!-- TABLE -->
-    <div class="table-section">
-        <div class="table-header">
-            <div class="table-title">📋 Últimos Reportes</div>
-            <div class="table-search">
-                <input type="date" class="search-input" id="buscarFecha" placeholder="Buscar por fecha" onchange="filtrarPorFecha()">
-                <button class="btn btn-outline" onclick="limpiarBusqueda()" style="padding:7px 12px; font-size:12px;">✕</button>
+    <!-- MODAL DETALLE DE REPORTE -->
+    <div id="modalDetalle" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-header-left">
+                    <h2 class="modal-title">📦 Detalle del Reporte</h2>
+                    <button class="btn-export-excel" id="btnExportarDetalle" onclick="exportarDetalleExcel()">
+                        📥 Descargar Excel
+                    </button>
+                </div>
+                <button class="modal-close" onclick="cerrarModal()">×</button>
             </div>
-        </div>
-        <div id="tableContainer">
-            <div class="state-container">
-                <div class="spinner"></div>
-                <div class="state-title">Cargando datos...</div>
-                <div class="state-desc">Conectando con Google Sheets</div>
+            
+            <div id="modalBody">
+                <!-- El contenido se carga dinámicamente -->
             </div>
         </div>
     </div>
 
-</div>
+    <script>
+        // CONFIGURACIÓN - REEMPLAZAR CON TU URL DE GOOGLE SHEETS
+        const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjaua58YgR8oaGO55GSft3T-0igvuI4ogesjoNme-J_xmhGkvzNr1FPGfSnhqJBr1egQ/exec';
+        
+        let todosLosReportes = [];
+        let reportesFiltrados = [];
+        let charts = {};
+        let reporteActual = null; // Para guardar el reporte que se está viendo en el modal
 
-<!-- MODAL DETALLE -->
-<div class="modal-overlay" id="modalOverlay" onclick="cerrarModal(event)">
-    <div class="modal">
-        <div class="modal-header">
-            <div class="modal-title" id="modalTitle">Detalle del Reporte</div>
-            <div class="modal-actions">
-                <button class="btn-modal-export" onclick="exportarDetalleExcel()">⬇ Descargar Excel</button>
-                <button class="btn-close" onclick="cerrarModalBtn()">✕</button>
-            </div>
-        </div>
-        <div class="modal-body" id="modalBody"></div>
-    </div>
-</div>
+        // CARGAR DATOS AL INICIAR
+        window.addEventListener('load', () => {
+            inicializarFechas();
+            cargarDatos();
+        });
 
-<script>
-    // ── CONFIGURACIÓN ──
-    const SHEET_URL = 'https://script.google.com/macros/s/AKfycbwjaua58YgR8oaGO55GSft3T-0igvuI4ogesjoNme-J_xmhGkvzNr1FPGfSnhqJBr1egQ/exec';
-    const COLORES_BODEGA = ['#FF6600','#CC4F00','#FF8533','#FFB380','#FFA366','#FFD4B3','#E65C00','#FF9933'];
+        function inicializarFechas() {
+            const hoy = new Date();
+            const hace30Dias = new Date();
+            hace30Dias.setDate(hoy.getDate() - 30);
+            
+            document.getElementById('fechaDesde').value = hace30Dias.toISOString().split('T')[0];
+            document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
+        }
 
-    let todosLosReportes = [];
-    let reportesFiltrados = [];
-    let charts = {};
-    let reporteActual = null;
-    let reportesFiltradosTabla = [];
 
-    // ── INIT ──
-    window.addEventListener('load', () => {
-        inicializarFechas();
-        cargarDatos();
-    });
-
-    function inicializarFechas() {
-        const hoy = new Date();
-        const hace30 = new Date();
-        hace30.setDate(hoy.getDate() - 30);
-        document.getElementById('fechaDesde').value = hace30.toISOString().split('T')[0];
-        document.getElementById('fechaHasta').value = hoy.toISOString().split('T')[0];
-    }
-
-    // ── CARGA DE DATOS ──
-    async function cargarDatos() {
-        document.getElementById('tableContainer').innerHTML = `
-            <div class="state-container">
-                <div class="spinner"></div>
-                <div class="state-title">Cargando datos...</div>
-                <div class="state-desc">Conectando con Google Sheets</div>
-            </div>`;
-
-        try {
-            const response = await fetch(SHEET_URL);
-            if (!response.ok) throw new Error('Error de conexión');
-            const data = await response.json();
-
-            if (data.success && data.reportes) {
-                // Normalizar todas las fechas: quitar parte de hora si viene como ISO
-                todosLosReportes = data.reportes.map(r => ({
-                    ...r,
-                    fecha: r.fecha ? r.fecha.split('T')[0] : r.fecha,
-                    fecha_firma: r.fecha_firma ? r.fecha_firma.split('T')[0] : r.fecha_firma
+        // ── Helper: normaliza codigos sin importar el formato ──
+        // Formato nuevo (array): [{codigo:"000123", cantidad:1}, ...]
+        // Formato viejo (objeto): {"codigo1": 1, "codigo2": 2}
+        function normalizarCodigos(raw) {
+            if (!raw) return [];
+            if (Array.isArray(raw)) {
+                // Formato nuevo
+                return raw.map(item => ({
+                    codigo: String(item.codigo || item),
+                    cantidad: Number(item.cantidad) || 1
                 }));
-                reportesFiltrados = [...todosLosReportes];
-                actualizarDashboard();
-                document.getElementById('lastUpdate').textContent =
-                    'Actualizado: ' + new Date().toLocaleTimeString('es-CL');
+            }
+            if (typeof raw === 'object') {
+                // Formato viejo
+                return Object.entries(raw).map(([codigo, cantidad]) => ({
+                    codigo: String(codigo),
+                    cantidad: Number(cantidad) || 1
+                }));
+            }
+            return [];
+        }
+
+       async function cargarDatos() {
+    try {
+        document.getElementById('tableContainer').innerHTML = 
+            '<div class="loading">🔄 Cargando datos de la base de datos...</div>';
+        
+        console.log('📥 Cargando datos desde:', SHEET_URL);
+        
+        // Llamar a la API de Google Sheets
+        const response = await fetch(SHEET_URL);
+        
+        if (!response.ok) {
+            throw new Error('Error al conectar con la base de datos');
+        }
+        
+        const data = await response.json();
+        
+        console.log('✅ Datos recibidos:', data);
+        
+        if (data.success && data.reportes) {
+            todosLosReportes = data.reportes;
+            reportesFiltrados = [...todosLosReportes];
+            
+            if (todosLosReportes.length === 0) {
+                document.getElementById('tableContainer').innerHTML = 
+                    '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No hay reportes en la base de datos aún.<br>Genera tu primer reporte desde la app.</p></div>';
             } else {
-                throw new Error('Sin datos');
+                actualizarDashboard();
             }
-        } catch (err) {
-            document.getElementById('tableContainer').innerHTML = `
-                <div class="state-container">
-                    <div class="state-icon">❌</div>
-                    <div class="state-title">Error al conectar</div>
-                    <div class="state-desc">Verifica la URL del Apps Script o intenta nuevamente</div>
-                    <br>
-                    <button class="btn btn-primary" onclick="cargarDatos()">🔄 Reintentar</button>
-                </div>`;
-        }
-    }
-
-    // ── FILTROS ──
-    function aplicarFiltros() {
-        const desde = document.getElementById('fechaDesde').value;
-        const hasta = document.getElementById('fechaHasta').value;
-        const bodega = document.getElementById('filtroBodega').value;
-
-        reportesFiltrados = todosLosReportes.filter(r => {
-            const okFecha = (!desde || r.fecha >= desde) && (!hasta || r.fecha <= hasta);
-            const okBodega = !bodega || r.bodega === bodega;
-            return okFecha && okBodega;
-        });
-
-        actualizarDashboard();
-    }
-
-    function limpiarFiltros() {
-        inicializarFechas();
-        document.getElementById('filtroBodega').value = '';
-        document.getElementById('buscarFecha').value = '';
-        reportesFiltrados = [...todosLosReportes];
-        actualizarDashboard();
-    }
-
-    function filtrarPorFecha() {
-        const fecha = document.getElementById('buscarFecha').value;
-        if (!fecha) {
-            reportesFiltradosTabla = reportesFiltrados;
         } else {
-            // Comparar solo la parte de fecha (por si algún registro tiene hora)
-            reportesFiltradosTabla = reportesFiltrados.filter(r => {
-                const fechaReporte = r.fecha ? r.fecha.split('T')[0] : '';
-                return fechaReporte === fecha;
+            throw new Error('No se pudieron cargar los datos');
+        }
+    } catch (error) {
+        console.error('❌ Error al cargar datos:', error);
+        document.getElementById('tableContainer').innerHTML = 
+            '<div class="error">❌ Error al cargar los datos.<br><br>' +
+            'Verifica que:<br>' +
+            '1. La URL del Apps Script sea correcta<br>' +
+            '2. La hoja de Google Sheets esté pública<br>' +
+            '3. Haya reportes generados<br><br>' +
+            '<button class="btn" onclick="location.reload()">🔄 Reintentar</button></div>';
+    }
+}
+
+        
+
+        function generarCodigosAleatorios() {
+            const codigos = {};
+            const numCodigos = Math.floor(Math.random() * 20 + 5);
+            for (let i = 0; i < numCodigos; i++) {
+                const codigo = 'ABC' + Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+                codigos[codigo] = Math.floor(Math.random() * 5 + 1);
+            }
+            return codigos;
+        }
+
+        function aplicarFiltros() {
+            const fechaDesde = document.getElementById('fechaDesde').value;
+            const fechaHasta = document.getElementById('fechaHasta').value;
+            const bodega = document.getElementById('filtroBodega').value;
+            
+            reportesFiltrados = todosLosReportes.filter(r => {
+                const cumpleFecha = (!fechaDesde || r.fecha >= fechaDesde) && 
+                                   (!fechaHasta || r.fecha <= fechaHasta);
+                const cumpleBodega = !bodega || r.bodega === bodega;
+                return cumpleFecha && cumpleBodega;
             });
-        }
-        renderTabla(reportesFiltradosTabla);
-    }
-
-    function limpiarBusqueda() {
-        document.getElementById('buscarFecha').value = '';
-        reportesFiltradosTabla = reportesFiltrados;
-        renderTabla(reportesFiltradosTabla);
-    }
-
-    // ── ACTUALIZAR DASHBOARD ──
-    function actualizarDashboard() {
-        actualizarKPIs();
-        actualizarFiltroBodegas();
-        actualizarGraficosDias();
-        actualizarGraficoBodega();
-        reportesFiltradosTabla = reportesFiltrados;
-        renderTabla(reportesFiltrados);
-    }
-
-    // ── KPIs ──
-    function actualizarKPIs() {
-        const totalReportes = reportesFiltrados.length;
-        const totalBultos = reportesFiltrados.reduce((s, r) => s + (r.total_escaneos || 0), 0);
-        const sinCarga = reportesFiltrados.filter(r => r.sin_cargas).length;
-        const multibultos = reportesFiltrados.reduce((s, r) => s + (r.multibultos || 0), 0);
-
-        animarNumero('kpiReportes', totalReportes);
-        animarNumero('kpiBultos', totalBultos);
-        animarNumero('kpiSinCarga', sinCarga);
-        animarNumero('kpiMultibultos', multibultos);
-    }
-
-    function animarNumero(id, target) {
-        const el = document.getElementById(id);
-        const start = parseInt(el.textContent) || 0;
-        const duration = 500;
-        const startTime = performance.now();
-
-        function update(now) {
-            const progress = Math.min((now - startTime) / duration, 1);
-            const ease = 1 - Math.pow(1 - progress, 3);
-            el.textContent = Math.round(start + (target - start) * ease).toLocaleString();
-            if (progress < 1) requestAnimationFrame(update);
-        }
-        requestAnimationFrame(update);
-    }
-
-    // ── GRÁFICO DÍAS ── 6 días centrado en hoy
-    function actualizarGraficosDias() {
-        const hoy = new Date();
-        const dias = [];
-        for (let i = -3; i <= 3; i++) {
-            const d = new Date(hoy);
-            d.setDate(hoy.getDate() + i);
-            dias.push(d.toISOString().split('T')[0]);
+            
+            actualizarDashboard();
         }
 
-        // Agrupar bultos por día de los reportes filtrados
-        const bultosPorDia = {};
-        reportesFiltrados.forEach(r => {
-            bultosPorDia[r.fecha] = (bultosPorDia[r.fecha] || 0) + (r.total_escaneos || 0);
-        });
+        function limpiarFiltros() {
+            inicializarFechas();
+            document.getElementById('filtroBodega').value = '';
+            reportesFiltrados = [...todosLosReportes];
+            actualizarDashboard();
+        }
 
-        const labels = dias.map(d => {
-            const [, mes, dia] = d.split('-');
-            return `${dia}/${mes}`;
-        });
-        const valores = dias.map(d => bultosPorDia[d] || 0);
+        function actualizarDashboard() {
+            actualizarEstadisticas();
+            actualizarGraficos();
+            actualizarTabla();
+            actualizarFiltroBodegas();
+        }
 
-        // Colores: hoy en naranja, resto más suave
-        const hoySt = hoy.toISOString().split('T')[0];
-        const bgColors = dias.map(d => d === hoySt ? 'rgba(255,102,0,1)' : 'rgba(255,102,0,0.25)');
-        const borderColors = dias.map(d => d === hoySt ? '#CC4F00' : 'rgba(255,102,0,0.4)');
+        function actualizarEstadisticas() {
+            const totalReportes = reportesFiltrados.length;
+            const totalBultos = reportesFiltrados.reduce((sum, r) => sum + r.total_escaneos, 0);
+            const sinCargas = reportesFiltrados.filter(r => r.sin_cargas).length;
+            const encargadosUnicos = new Set(reportesFiltrados.map(r => r.encargado)).size;
+            
+            document.getElementById('totalReportes').textContent = totalReportes;
+            document.getElementById('totalBultos').textContent = totalBultos.toLocaleString();
+            document.getElementById('sinCargas').textContent = sinCargas;
+            document.getElementById('encargadosActivos').textContent = encargadosUnicos;
+        }
 
-        if (charts['chartDias']) charts['chartDias'].destroy();
+        function actualizarGraficos() {
+            // GRÁFICO 1: CÓDIGOS ESCANEADOS POR DÍA (no reportes)
+            const codigosPorDia = {};
+            reportesFiltrados.forEach(r => {
+                codigosPorDia[r.fecha] = (codigosPorDia[r.fecha] || 0) + r.total_escaneos;
+            });
+            
+            const fechasOrdenadas = Object.keys(codigosPorDia).sort();
+            const ultimos7Dias = fechasOrdenadas.slice(-7);
+            
+            crearGrafico('chartCodigosPorDia', 'line', 
+                ultimos7Dias,
+                ultimos7Dias.map(f => codigosPorDia[f]),
+                'Códigos Escaneados', '#FF6600'
+            );
+            
+            // GRÁFICO 2: CÓDIGOS ESCANEADOS POR BODEGA (no reportes)
+            const codigosPorBodega = {};
+            reportesFiltrados.forEach(r => {
+                codigosPorBodega[r.bodega] = (codigosPorBodega[r.bodega] || 0) + r.total_escaneos;
+            });
+            
+            // Calcular y mostrar total
+            const totalCodigos = Object.values(codigosPorBodega).reduce((a, b) => a + b, 0);
+            const bodegaFiltrada = document.getElementById('filtroBodega').value;
+            
+            let textoTotal = '';
+            if (bodegaFiltrada) {
+                // Si hay filtro de bodega, mostrar solo ese total
+                const totalBodega = codigosPorBodega[bodegaFiltrada] || 0;
+                textoTotal = `📦 Total ${bodegaFiltrada}: <strong style="color: #FF6600; font-size: 20px;">${totalBodega.toLocaleString()}</strong> códigos`;
+            } else {
+                // Si no hay filtro, mostrar total general
+                textoTotal = `📦 Total General: <strong style="color: #FF6600; font-size: 20px;">${totalCodigos.toLocaleString()}</strong> códigos`;
+                
+                // Agregar desglose por bodega
+                if (Object.keys(codigosPorBodega).length > 1) {
+                    textoTotal += '<br><small style="color: #999;">';
+                    Object.entries(codigosPorBodega).forEach(([bodega, total]) => {
+                        textoTotal += `${bodega}: ${total.toLocaleString()} • `;
+                    });
+                    textoTotal = textoTotal.slice(0, -2) + '</small>';
+                }
+            }
+            
+            document.getElementById('totalBodegaDisplay').innerHTML = textoTotal;
+            
+            crearGrafico('chartCodigosPorBodega', 'doughnut',
+                Object.keys(codigosPorBodega),
+                Object.values(codigosPorBodega),
+                'Códigos Escaneados', ['#FF6600', '#cc5200', '#FF8C42', '#FFA366', '#FFB380']
+            );
+        }
 
-        charts['chartDias'] = new Chart(document.getElementById('chartDias'), {
-            type: 'line',
-            data: {
-                labels,
-                datasets: [{
-                    label: 'Bultos',
-                    data: valores,
-                    backgroundColor: 'rgba(255,102,0,0.12)',
-                    borderColor: '#FF6600',
-                    borderWidth: 2.5,
-                    pointBackgroundColor: bgColors,
-                    pointBorderColor: borderColors,
-                    pointRadius: dias.map(d => d === hoySt ? 8 : 5),
-                    pointHoverRadius: 8,
-                    tension: 0.35,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: { display: false },
-                    tooltip: {
-                        callbacks: {
-                            title: (items) => {
-                                const idx = items[0].dataIndex;
-                                return dias[idx] === hoySt ? `${labels[idx]} (Hoy)` : labels[idx];
-                            },
-                            label: (item) => ` ${item.raw} bultos`
-                        }
-                    }
+        function crearGrafico(id, tipo, labels, data, label, color) {
+            const ctx = document.getElementById(id);
+            
+            if (charts[id]) {
+                charts[id].destroy();
+            }
+            
+            const config = {
+                type: tipo,
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        backgroundColor: Array.isArray(color) ? color : color,
+                        borderColor: tipo === 'line' ? color : 'transparent',
+                        borderWidth: tipo === 'line' ? 2 : 0,
+                        tension: 0.4
+                    }]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: '#F0F0F0' },
-                        ticks: {
-                            font: { family: 'Barlow', size: 12 },
-                            color: '#999',
-                            precision: 0,
-                            stepSize: 1,
-                            callback: (val) => Number.isInteger(val) ? val : null
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: tipo === 'doughnut'
                         }
                     },
-                    x: {
-                        grid: { display: false },
-                        ticks: { font: { family: 'Barlow', size: 12 }, color: '#999' }
-                    }
+                    scales: tipo !== 'doughnut' ? {
+                        y: {
+                            beginAtZero: true
+                        }
+                    } : {}
                 }
-            }
-        });
-    }
-
-    // ── GRÁFICO TORTA BODEGA ──
-    function actualizarGraficoBodega() {
-        const bultosPorBodega = {};
-        reportesFiltrados.forEach(r => {
-            if (!r.sin_cargas) {
-                bultosPorBodega[r.bodega] = (bultosPorBodega[r.bodega] || 0) + (r.total_escaneos || 0);
-            }
-        });
-
-        const labels = Object.keys(bultosPorBodega);
-        const valores = Object.values(bultosPorBodega);
-        const total = valores.reduce((a, b) => a + b, 0);
-
-        document.getElementById('chartBodegaBadge').textContent =
-            total > 0 ? `${total.toLocaleString()} bultos` : 'Sin datos';
-
-        if (charts['chartBodega']) charts['chartBodega'].destroy();
-
-        if (labels.length === 0) {
-            document.getElementById('chartBodega').parentElement.innerHTML =
-                '<div style="height:240px;display:flex;align-items:center;justify-content:center;color:#CCC;font-size:14px;">Sin datos para mostrar</div>';
-            return;
+            };
+            
+            charts[id] = new Chart(ctx, config);
         }
 
-        charts['chartBodega'] = new Chart(document.getElementById('chartBodega'), {
-            type: 'doughnut',
-            data: {
-                labels,
-                datasets: [{
-                    data: valores,
-                    backgroundColor: COLORES_BODEGA.slice(0, labels.length),
-                    borderWidth: 3,
-                    borderColor: '#fff',
-                    hoverOffset: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                cutout: '62%',
-                plugins: {
-                    legend: {
-                        position: 'right',
-                        labels: {
-                            font: { family: 'Barlow', size: 12 },
-                            color: '#444',
-                            boxWidth: 12,
-                            padding: 10,
-                            generateLabels: (chart) => {
-                                const data = chart.data;
-                                return data.labels.map((label, i) => ({
-                                    text: `${label.length > 18 ? label.substring(0, 18) + '…' : label} (${data.datasets[0].data[i]})`,
-                                    fillStyle: data.datasets[0].backgroundColor[i],
-                                    hidden: false,
-                                    index: i
-                                }));
-                            }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: (item) => ` ${item.raw} bultos (${((item.raw / total) * 100).toFixed(1)}%)`
-                        }
-                    }
-                }
-            }
-        });
-    }
-
-    // ── TABLA ──
-    function actualizarFiltroBodegas() {
-        const bodegas = [...new Set(todosLosReportes.map(r => r.bodega))].sort();
-        const select = document.getElementById('filtroBodega');
-        const actual = select.value;
-        select.innerHTML = '<option value="">Todas las bodegas</option>' +
-            bodegas.map(b => `<option value="${b}">${b}</option>`).join('');
-        select.value = actual;
-    }
-
-    function renderTabla(reportes) {
-        const ultimos10 = reportes.slice(-10).reverse();
-
-        if (ultimos10.length === 0) {
-            document.getElementById('tableContainer').innerHTML = `
-                <div class="state-container">
-                    <div class="state-icon">📭</div>
-                    <div class="state-title">Sin resultados</div>
-                    <div class="state-desc">No hay reportes para los filtros seleccionados</div>
-                </div>`;
-            return;
-        }
-
-        const html = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>Fecha</th>
-                        <th>Hora</th>
-                        <th>Bodega</th>
-                        <th>Encargado</th>
-                        <th>Bultos</th>
-                        <th>Estado</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${ultimos10.map(r => `
-                        <tr>
-                            <td><strong>${r.fecha ? r.fecha.split("T")[0] : "—"}</strong></td>
-                            <td style="color:#888">${r.hora_generacion || r.hora || '—'}</td>
-                            <td>${r.bodega}</td>
-                            <td>${r.encargado || '—'}</td>
-                            <td><strong style="color: var(--orange)">${r.total_escaneos || 0}</strong></td>
-                            <td>
-                                <span class="badge ${r.sin_cargas ? 'badge-warning' : 'badge-success'}">
-                                    ${r.sin_cargas ? '⚠ Sin Carga' : '✓ Completado'}
-                                </span>
-                            </td>
-                            <td>
-                                <button class="btn-detalle" onclick='verDetalle(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
-                                    Ver detalle
-                                </button>
-                            </td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-            <div style="padding:12px 20px; font-size:12px; color:#999; border-top:1px solid #F2F2F2;">
-                Mostrando los últimos ${ultimos10.length} de ${reportes.length} reportes
-            </div>`;
-
-        document.getElementById('tableContainer').innerHTML = html;
-    }
-
-    // ── MODAL DETALLE ──
-    function verDetalle(reporte) {
-        reporteActual = reporte;
-        document.getElementById('modalTitle').textContent =
-            `Reporte — ${reporte.fecha} · ${reporte.bodega}`;
-
-        let html = `
-            <!-- KPIs mini -->
-            <div class="kpi-mini-grid">
-                <div class="kpi-mini">
-                    <div class="kpi-mini-val">${reporte.total_escaneos || 0}</div>
-                    <div class="kpi-mini-lbl">Total Escaneos</div>
-                </div>
-                <div class="kpi-mini">
-                    <div class="kpi-mini-val">${reporte.bultos_unicos || 0}</div>
-                    <div class="kpi-mini-lbl">Bultos Únicos</div>
-                </div>
-                <div class="kpi-mini">
-                    <div class="kpi-mini-val">${reporte.multibultos || 0}</div>
-                    <div class="kpi-mini-lbl">Multibultos</div>
-                </div>
-            </div>
-
-            <!-- Info general -->
-            <div class="detail-section">
-                <h3>📋 Información General</h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <div class="detail-label">Fecha</div>
-                        <div class="detail-value">${reporte.fecha}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Hora de Generación</div>
-                        <div class="detail-value">${reporte.hora_generacion || reporte.hora || '—'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Bodega</div>
-                        <div class="detail-value">${reporte.bodega}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Estado</div>
-                        <div class="detail-value">
-                            <span class="badge ${reporte.sin_cargas ? 'badge-warning' : 'badge-success'}">
-                                ${reporte.sin_cargas ? '⚠ Sin Carga' : '✓ Completado'}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Firma -->
-            <div class="detail-section">
-                <h3>✍️ Firma de Recepción</h3>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <div class="detail-label">Encargado</div>
-                        <div class="detail-value">${reporte.encargado || 'SIN FIRMA'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Fecha de Firma</div>
-                        <div class="detail-value">${reporte.fecha_firma || reporte.fecha || '—'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Hora de Firma</div>
-                        <div class="detail-value">${reporte.hora_firma || '—'}</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Fotografía</div>
-                        <div class="detail-value">${reporte.tiene_foto ? '✅ Sí' : '❌ No'}</div>
-                    </div>
-                </div>
-            </div>`;
-
-        // Códigos escaneados o sin cargas
-        if (reporte.sin_cargas) {
-            html += `
-            <div class="sin-cargas-alert">
-                <div class="alert-icon">⚠️</div>
-                <h3>Sin Cargas Disponibles</h3>
-                <p>El transporte llegó a la bodega pero no había paquetes disponibles para cargar.<br>Este reporte sirve como evidencia de la visita.</p>
-            </div>`;
-        } else if (reporte.codigos && Object.keys(reporte.codigos).length > 0) {
-            const codigos = Object.entries(reporte.codigos)
-                .map(([c, q]) => ({ codigo: c, cantidad: q }))
-                .sort((a, b) => b.cantidad - a.cantidad);
-
-            html += `
-            <div class="detail-section">
-                <h3>📦 Códigos Escaneados (${codigos.length} únicos)</h3>
-                <table class="codigos-table">
+        function actualizarTabla() {
+            const html = `
+                <table>
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Código</th>
-                            <th>Cantidad</th>
-                            <th>Tipo</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Bodega</th>
+                            <th>Encargado</th>
+                            <th>Bultos</th>
+                            <th>Estado</th>
+                            <th>Acción</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${codigos.map((item, i) => `
+                        ${reportesFiltrados.slice(0, 20).map(r => `
                             <tr>
-                                <td style="color:#999">${i + 1}</td>
-                                <td><strong>${item.codigo}</strong></td>
-                                <td>${item.cantidad}</td>
+                                <td>${r.fecha}</td>
+                                <td>${r.hora}</td>
+                                <td>${r.bodega}</td>
+                                <td>${r.encargado}</td>
+                                <td>${r.total_escaneos}</td>
                                 <td>
-                                    <span class="badge ${item.cantidad > 1 ? 'badge-warning' : 'badge-success'}">
-                                        ${item.cantidad > 1 ? 'Multibulto' : 'Único'}
+                                    <span class="badge ${r.sin_cargas ? 'badge-warning' : 'badge-success'}">
+                                        ${r.sin_cargas ? 'Sin Cargas' : 'Completado'}
                                     </span>
+                                </td>
+                                <td>
+                                    <button class="btn-ver-detalle" onclick='verDetalle(${JSON.stringify(r).replace(/'/g, "&#39;")})'>
+                                        👁️ Ver Detalle
+                                    </button>
                                 </td>
                             </tr>
                         `).join('')}
                     </tbody>
                 </table>
-            </div>`;
+                ${reportesFiltrados.length === 0 ? 
+                    '<div class="empty-state"><div class="empty-state-icon">📭</div><p>No hay reportes para mostrar</p></div>' : ''}
+            `;
+            
+            document.getElementById('tableContainer').innerHTML = html;
         }
 
-        document.getElementById('modalBody').innerHTML = html;
-        document.getElementById('modalOverlay').classList.add('show');
-    }
-
-    function cerrarModal(event) {
-        if (event.target === document.getElementById('modalOverlay')) {
-            document.getElementById('modalOverlay').classList.remove('show');
-        }
-    }
-
-    function cerrarModalBtn() {
-        document.getElementById('modalOverlay').classList.remove('show');
-    }
-
-    document.addEventListener('keydown', e => {
-        if (e.key === 'Escape') cerrarModalBtn();
-    });
-
-    // ── EXPORTAR DETALLE A EXCEL ──
-    function exportarDetalleExcel() {
-        if (!reporteActual) return;
-        const r = reporteActual;
-        const wb = XLSX.utils.book_new();
-
-        const resumen = [
-            ['BIGTICKET LOGÍSTICA Y TRANSPORTE'],
-            ['DETALLE DE REPORTE DE ESCANEO'],
-            [''],
-            ['Fecha:', r.fecha],
-            ['Hora:', r.hora_generacion || r.hora || '—'],
-            ['Bodega:', r.bodega],
-            ['Encargado:', r.encargado || 'SIN FIRMA'],
-            ['Fecha Firma:', r.fecha_firma || '—'],
-            ['Hora Firma:', r.hora_firma || '—'],
-            ['Fotografía:', r.tiene_foto ? 'Sí' : 'No'],
-            [''],
-            ['Total Escaneos:', r.total_escaneos || 0],
-            ['Bultos Únicos:', r.bultos_unicos || 0],
-            ['Multibultos:', r.multibultos || 0],
-            ['Estado:', r.sin_cargas ? 'Sin Cargas' : 'Completado'],
-        ];
-
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(resumen), 'Resumen');
-
-        if (!r.sin_cargas && r.codigos && Object.keys(r.codigos).length > 0) {
-            const rows = [['#', 'CÓDIGO', 'CANTIDAD', 'TIPO']];
-            Object.entries(r.codigos)
-                .sort((a, b) => b[1] - a[1])
-                .forEach(([codigo, cantidad], i) => {
-                    rows.push([i + 1, codigo, cantidad, cantidad > 1 ? 'Multibulto' : 'Único']);
-                });
-            rows.push([], ['Total Únicos:', Object.keys(r.codigos).length], ['Total Escaneos:', r.total_escaneos]);
-            XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Códigos');
+        function actualizarFiltroBodegas() {
+            const bodegas = [...new Set(todosLosReportes.map(r => r.bodega))];
+            const select = document.getElementById('filtroBodega');
+            const valorActual = select.value;
+            
+            select.innerHTML = '<option value="">Todas las bodegas</option>' +
+                bodegas.map(b => `<option value="${b}">${b}</option>`).join('');
+            
+            select.value = valorActual;
         }
 
-        const nombre = `Reporte_${r.bodega.replace(/[\\/]/g, '-')}_${r.fecha}.xlsx`;
-        XLSX.writeFile(wb, nombre);
-    }
+        function exportarExcel() {
+            alert('Función de exportar en desarrollo.\nPor ahora puedes usar Google Sheets directamente para exportar.');
+        }
 
-    // ── EXPORTAR RESUMEN GENERAL ──
-    function exportarResumen() {
-        if (reportesFiltrados.length === 0) { alert('No hay datos para exportar.'); return; }
+        // FUNCIONES PARA VER DETALLE DE REPORTE
+        function verDetalle(reporte) {
+            reporteActual = reporte; // Guardar para exportar después
+            
+            const modal = document.getElementById('modalDetalle');
+            const modalBody = document.getElementById('modalBody');
+            
+            // Construir HTML del detalle
+            let html = `
+                <!-- INFORMACIÓN GENERAL -->
+                <div class="detail-section">
+                    <h3>📋 Información General</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">ID Reporte</div>
+                            <div class="detail-value">#${reporte.id}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha</div>
+                            <div class="detail-value">${reporte.fecha}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Hora de Generación</div>
+                            <div class="detail-value">${reporte.hora}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Bodega</div>
+                            <div class="detail-value">${reporte.bodega}</div>
+                        </div>
+                    </div>
+                </div>
 
-        const rows = [['FECHA', 'HORA', 'BODEGA', 'ENCARGADO', 'TOTAL ESCANEOS', 'BULTOS ÚNICOS', 'MULTIBULTOS', 'ESTADO']];
-        reportesFiltrados.forEach(r => {
-            rows.push([
-                r.fecha, r.hora_generacion || r.hora || '—', r.bodega, r.encargado || '—',
-                r.total_escaneos || 0, r.bultos_unicos || 0, r.multibultos || 0,
-                r.sin_cargas ? 'Sin Cargas' : 'Completado'
-            ]);
+                <!-- FIRMA -->
+                <div class="detail-section">
+                    <h3>✍️ Firma de Recepción</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Encargado</div>
+                            <div class="detail-value">${reporte.encargado}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Fecha de Firma</div>
+                            <div class="detail-value">${reporte.fecha_firma || reporte.fecha}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Hora de Firma</div>
+                            <div class="detail-value">${reporte.hora_firma || reporte.hora}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Fotografía</div>
+                            <div class="detail-value">${reporte.tiene_foto ? '✅ Sí' : '❌ No'}</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ESTADÍSTICAS -->
+                <div class="detail-section">
+                    <h3>📊 Estadísticas del Escaneo</h3>
+                    <div class="detail-grid">
+                        <div class="detail-item">
+                            <div class="detail-label">Total de Escaneos</div>
+                            <div class="detail-value" style="color: #FF6600; font-size: 24px;">${reporte.total_escaneos}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Bultos Únicos</div>
+                            <div class="detail-value" style="color: #2196f3; font-size: 24px;">${reporte.bultos_unicos}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Multibultos</div>
+                            <div class="detail-value" style="color: #4caf50; font-size: 24px;">${reporte.multibultos}</div>
+                        </div>
+                        <div class="detail-item">
+                            <div class="detail-label">Estado</div>
+                            <div class="detail-value">
+                                <span class="badge ${reporte.sin_cargas ? 'badge-warning' : 'badge-success'}">
+                                    ${reporte.sin_cargas ? '⚠️ Sin Cargas' : '✅ Completado'}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Si NO es "sin cargas", mostrar tabla de códigos
+            const _codigosNorm = normalizarCodigos(reporte.codigos);
+            if (!reporte.sin_cargas && _codigosNorm.length > 0) {
+                const codigosArray = _codigosNorm.sort((a, b) => b.cantidad - a.cantidad);
+
+                html += `
+                    <!-- CÓDIGOS ESCANEADOS -->
+                    <div class="detail-section">
+                        <h3>📦 Códigos Escaneados (${codigosArray.length} únicos)</h3>
+                        <table class="codigos-table">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Código</th>
+                                    <th>Cantidad</th>
+                                    <th>Tipo</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${codigosArray.map((item, index) => `
+                                    <tr>
+                                        <td>${index + 1}</td>
+                                        <td><strong>${item.codigo}</strong></td>
+                                        <td>${item.cantidad}</td>
+                                        <td>
+                                            <span class="badge ${item.cantidad > 1 ? 'badge-warning' : 'badge-success'}">
+                                                ${item.cantidad > 1 ? 'Multibulto' : 'Único'}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                `;
+            } else if (reporte.sin_cargas) {
+                html += `
+                    <div class="detail-section" style="background: #fff3cd; border-left: 4px solid #ffc107;">
+                        <h3 style="color: #856404;">⚠️ Reporte Sin Cargas Disponibles</h3>
+                        <p style="color: #856404; margin: 10px 0;">
+                            El transporte llegó a la bodega pero no había paquetes disponibles para cargar.
+                            Este reporte sirve como evidencia de la visita.
+                        </p>
+                    </div>
+                `;
+            }
+
+            modalBody.innerHTML = html;
+            modal.classList.add('show');
+            
+            // Cerrar modal al hacer click fuera
+            modal.onclick = function(event) {
+                if (event.target === modal) {
+                    cerrarModal();
+                }
+            };
+        }
+
+        function cerrarModal() {
+            const modal = document.getElementById('modalDetalle');
+            modal.classList.remove('show');
+        }
+
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                cerrarModal();
+            }
         });
 
-        const wb = XLSX.utils.book_new();
-        XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(rows), 'Reportes');
-        XLSX.writeFile(wb, `BigTicket_Reportes_${new Date().toISOString().split('T')[0]}.xlsx`);
-    }
-</script>
+        // FUNCIÓN PARA EXPORTAR DETALLE A EXCEL
+        function exportarDetalleExcel() {
+            if (!reporteActual) {
+                alert('No hay reporte seleccionado');
+                return;
+            }
+
+            try {
+                const r = reporteActual;
+                
+                // Crear un nuevo libro de Excel
+                const wb = XLSX.utils.book_new();
+
+                // HOJA 1: INFORMACIÓN GENERAL Y ESTADÍSTICAS
+                const datosGenerales = [
+                    ['BIGTICKET LOGÍSTICA Y TRANSPORTE'],
+                    ['DETALLE DE REPORTE DE ESCANEO'],
+                    [''],
+                    ['INFORMACIÓN GENERAL'],
+                    ['ID Reporte:', r.id],
+                    ['Fecha:', r.fecha],
+                    ['Hora de Generación:', r.hora],
+                    ['Bodega:', r.bodega],
+                    [''],
+                    ['FIRMA DE RECEPCIÓN'],
+                    ['Encargado:', r.encargado],
+                    ['Fecha de Firma:', r.fecha_firma || r.fecha],
+                    ['Hora de Firma:', r.hora_firma || r.hora],
+                    ['Fotografía:', r.tiene_foto ? 'Sí' : 'No'],
+                    [''],
+                    ['ESTADÍSTICAS'],
+                    ['Total de Escaneos:', r.total_escaneos],
+                    ['Bultos Únicos:', r.bultos_unicos],
+                    ['Multibultos:', r.multibultos],
+                    ['Estado:', r.sin_cargas ? 'Sin Cargas Disponibles' : 'Completado']
+                ];
+
+                const wsGeneral = XLSX.utils.aoa_to_sheet(datosGenerales);
+                
+                // Estilo para encabezados
+                wsGeneral['A1'].s = { font: { bold: true, sz: 14 } };
+                wsGeneral['A2'].s = { font: { bold: true, sz: 12 } };
+                
+                XLSX.utils.book_append_sheet(wb, wsGeneral, 'Resumen');
+
+                // HOJA 2: CÓDIGOS ESCANEADOS (solo si no es "sin cargas")
+                const _exportCodigos = normalizarCodigos(r.codigos);
+                if (!r.sin_cargas && _exportCodigos.length > 0) {
+                    const codigosArray = [
+                        ['#', 'CÓDIGO', 'CANTIDAD', 'TIPO']
+                    ];
+                    
+                    const codigosOrdenados = _exportCodigos.sort((a, b) => b.cantidad - a.cantidad);
+                    
+                    codigosOrdenados.forEach((item, index) => {
+                        // Forzar tipo texto en Excel para preservar ceros iniciales
+                        codigosArray.push([
+                            index + 1,
+                            { t: 's', v: String(item.codigo) }, // tipo texto para preservar 000123
+                            item.cantidad,
+                            item.cantidad > 1 ? 'Multibulto' : 'Único'
+                        ]);
+                    });
+                    
+                    // Agregar totales al final
+                    codigosArray.push([]);
+                    codigosArray.push(['TOTALES']);
+                    codigosArray.push(['Total Códigos Únicos:', codigosOrdenados.length]);
+                    codigosArray.push(['Total Escaneos:', r.total_escaneos]);
+                    codigosArray.push(['Bultos Únicos:', r.bultos_unicos]);
+                    codigosArray.push(['Multibultos:', r.multibultos]);
+
+                    const wsCodigos = XLSX.utils.aoa_to_sheet(codigosArray);
+                    XLSX.utils.book_append_sheet(wb, wsCodigos, 'Códigos Escaneados');
+                } else if (r.sin_cargas) {
+                    // Si es sin cargas, agregar hoja explicativa
+                    const sinCargasData = [
+                        ['SIN CARGAS DISPONIBLES'],
+                        [''],
+                        ['El transporte llegó a la bodega pero no había paquetes'],
+                        ['disponibles para cargar.'],
+                        [''],
+                        ['Este reporte sirve como evidencia de la visita.'],
+                        [''],
+                        ['Fecha de visita:', r.fecha],
+                        ['Hora de visita:', r.hora],
+                        ['Encargado:', r.encargado],
+                        ['Fotografía de evidencia:', r.tiene_foto ? 'Sí' : 'No']
+                    ];
+                    
+                    const wsSinCargas = XLSX.utils.aoa_to_sheet(sinCargasData);
+                    XLSX.utils.book_append_sheet(wb, wsSinCargas, 'Sin Cargas');
+                }
+
+                // Generar nombre del archivo
+                const bodegaLimpia = r.bodega.replace(/[\/\\]/g, '-');
+                const nombreArchivo = `Reporte_${bodegaLimpia}_${r.fecha}_ID${r.id}.xlsx`;
+
+                // Descargar el archivo
+                XLSX.writeFile(wb, nombreArchivo);
+
+                // Mensaje de éxito
+                setTimeout(() => {
+                    alert('✅ Excel descargado correctamente:\n' + nombreArchivo);
+                }, 100);
+
+            } catch (error) {
+                console.error('Error al exportar:', error);
+                alert('❌ Error al generar el Excel. Por favor intenta de nuevo.');
+            }
+        }
+    </script>
 </body>
 </html>
