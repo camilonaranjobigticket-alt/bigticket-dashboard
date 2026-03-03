@@ -606,7 +606,12 @@
         console.log('✅ Datos recibidos:', data);
         
         if (data.success && data.reportes) {
-            todosLosReportes = data.reportes;
+            // Normalizar fechas: quitar parte de hora "T03:00:00.000Z"
+            todosLosReportes = data.reportes.map(r => ({
+                ...r,
+                fecha: r.fecha ? r.fecha.split('T')[0] : r.fecha,
+                fecha_firma: r.fecha_firma ? r.fecha_firma.split('T')[0] : r.fecha_firma
+            }));
             reportesFiltrados = [...todosLosReportes];
             
             if (todosLosReportes.length === 0) {
